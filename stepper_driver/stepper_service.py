@@ -13,9 +13,9 @@ from time import sleep
 
 # Project Imports
 from .StepperDriver import StepperDriver
+#import config
 
-# Define pins
-# Default GPIO16 for Step, GPIO21 for Direction
+# Define pins - Default GPIO16 for Step, GPIO21 for Direction
 STEP_PIN = 16
 DIRECTION_PIN = 21
 # Define Gap between each step the motor takes in seconds (note - if just testing/starting out, it's probably best to start off with a delay of ~0.1)
@@ -27,15 +27,11 @@ STEPS_PER_REV = 48
 MICROSETPPING_RES = 8
 
 # Default Rotation Directions
-__CLOCKWISE = 1
-__ANTI_CLOCKWISE = 0
-
+CLOCKWISE = 1
+ANTI_CLOCKWISE = 0
 
 class StepperService(Node):
 
-    __CLOCKWISE = 1
-    __ANTI_CLOCKWISE = 0
-	
     def __init__(self):
         super().__init__('stepper_service')
 
@@ -43,7 +39,7 @@ class StepperService(Node):
         self.get_logger().info('Initialising Stepper Motor Driver Node...')
 
         # Create a new instance of the Stepper Driver class
-        stepperDriver = StepperDriver(STEP_PIN, DIRECTION_PIN, STEP_DELAY, STEPS_PER_REV)
+        self.stepperDriver = StepperDriver(STEP_PIN, DIRECTION_PIN, STEP_DELAY, STEPS_PER_REV)
 
         # Create Service
         self.srv = self.create_service(AddTwoInts, 'move_motor', self.move_motor_callback)
@@ -60,8 +56,7 @@ class StepperService(Node):
 
         # Extract Data from the ROS SRV Message/Interface
         # TODO - Change to custom message instead of ROS2 Example SRV Message
-
-        # If Steps are given directly (i.e. not just a target angle in degrees)
+        # If Step Count is given directly (i.e. not just a target angle in degrees)
         if request.b != 0:
             stepsToTake = request.b
 
@@ -71,27 +66,28 @@ class StepperService(Node):
             stepsToTake = request.a / 360 * STEPS_PER_REV * MICROSETPPING_RES
             round(stepsToTake)
 
-            # Default to Clockwise Rotation
-            direction = __CLOCKWISE
-
-            # Calculate the resulting angle in degrees again for user info (note Target angle was given, exact steps not always possible due to the step resoloution)
-            equivDeg = stepsToTake / MICROSETPPING_RES / STEPS_PER_REV * 360
-            response.sum = equivDeg     # Setting this to deg value inneficiently because future changes may require a True/False return value
-
         else:
             #ERROR bad target angle given
             self.get_logger().error('Bad Input Angle')
             return 0
 
 
+        # Default to Clockwise Rotation
+        direction = CLOCKWISE
+
+        # Calculate the resulting angle in degrees again for user info (note Target angle was given, exact steps not always possible due to the step resoloution)
+        equivDeg = int(stepsToTake / MICROSETPPING_RES / STEPS_PER_REV * 360)
+        response.sum = equivDeg     # Setting this to deg value inneficiently because future changes may require a True/False return value
+
+
         # Handle Negative (reverse) values
         if stepsToTake > 0:
-            direction = __CLOCKWISE
-            self.get_logger().info('Stepping Clockwise: ' + stepsToTake + ' Steps, approx ' + equivDeg + ' deg')
+            direction = CLOCKWISE
+            self.get_logger().info('Stepping Clockwise: ' + str(stepsToTake) + ' Steps, approx ' + str(equivDeg) + ' deg')
         elif stepsToTake < 0:
-            direction = __ANTI_CLOCKWISE
+            direction = ANTI_CLOCKWISE
             stepsToTake = abs(stepsToTake)  # Make Positive Number of Steps
-            self.get_logger().info('Stepping Anti-Clockwise: ' + stepsToTake + ' Steps, approx ' + equivDeg + ' deg')
+            self.get_logger().info('Stepping Anti-Clockwise: ' + str(stepsToTake) + ' Steps, approx ' + str(equivDeg) + ' deg')
         else:
             #ERROR bad target angle after calculation
             self.get_logger().error('Bad Resulting Step Angle.  You may have entered a value less than the step resoloution of your motor')

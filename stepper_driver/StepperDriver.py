@@ -26,7 +26,9 @@ class StepperDriver():
 		GPIO.setup(self.DirectionPin, GPIO.OUT)
 
 	def Step(self, stepsToTake, direction = __CLOCKWISE):
-        
+		
+		# Interperet stepsToTake as Integer
+		stepsToTake = int(stepsToTake)
 		print("Taking " + str(stepsToTake) + " steps.")
 
 		# Set the direction
