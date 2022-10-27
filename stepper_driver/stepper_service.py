@@ -19,7 +19,7 @@ from .StepperDriver import StepperDriver
 STEP_PIN = 16
 DIRECTION_PIN = 21
 # Define Gap between each step the motor takes in seconds (note - if just testing/starting out, it's probably best to start off with a delay of ~0.1)
-STEP_DELAY = 0.005
+STEP_DELAY = 0.0025
 # Define the number of steps your stepper motor has per revoloution (usual values - 360, 200, 48...)
 # Can be calculated as (360 deg / Step deg)
 STEPS_PER_REV = 48
@@ -78,7 +78,7 @@ class StepperService(Node):
 
         # Calculate the resulting angle in degrees again for user info (note Target angle was given, exact steps not always possible due to the step resoloution)
         equivDeg = int(round(stepsToTake / MICROSETPPING_RES / STEPS_PER_REV * 360))
-        response.sum = equivDeg     # Setting this to deg value inneficiently because future changes may require a True/False return value
+        #response.sum = equivDeg     # Setting this to deg value inneficiently because future changes may require a True/False return value
 
 
         # Handle Negative (reverse) values
@@ -92,7 +92,9 @@ class StepperService(Node):
         else:
             #ERROR bad target angle after calculation
             self.get_logger().error('Bad Resulting Step Angle.  You may have entered a value less than the step resoloution of your motor')
-            return 0
+            #Return Error '1' message
+            response.sum = 1
+            return response
 
 
         # Step the Motor
@@ -103,6 +105,8 @@ class StepperService(Node):
         self.get_logger().info('Completed Motor Rotation')
         #self.get_logger().info('Completed Motor Rotation: %d b: %d' % (request.a, request.b))
 
+        # Return successful '0' Message
+        response.sum = 0
         return response
 
 

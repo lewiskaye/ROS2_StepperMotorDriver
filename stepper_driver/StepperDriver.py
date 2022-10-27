@@ -7,7 +7,7 @@ class StepperDriver():
 	__CLOCKWISE = 1
 	__ANTI_CLOCKWISE = 0
 
-	def __init__(self, stepPin, directionPin, delay=0.208, stepsPerRevolution=200):
+	def __init__(self, stepPin, directionPin, delay=0.208, stepsPerRevolution=48):
 
 		# Configure instance
 		self.CLOCKWISE = self.__CLOCKWISE
