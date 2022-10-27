@@ -351,11 +351,12 @@ tmtags
 
 ##### VisualStudioCode
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/c_cpp_properties.json
+# Commented Out due to the nature of the project
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
+# !.vscode/c_cpp_properties.json
 *.code-workspace
 
 ##### NetBeans
