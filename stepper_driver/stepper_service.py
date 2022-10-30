@@ -1,11 +1,14 @@
 # Python Imports
 
 # ROS Imports
+from sympy import false, true
 import rclpy
 from rclpy.node import Node
+from rclpy.action import ActionServer
 from std_msgs.msg import String
 from example_interfaces.srv import AddTwoInts
 #from std_srvs.srv import <custom srv>
+from custom_interfaces.action import StepperMotor
 
 # RPi Imports
 import RPi.GPIO as GPIO
@@ -44,9 +47,9 @@ class StepperService(Node):
         # Create a new instance of the Stepper Driver class
         self.stepperDriver = StepperDriver(STEP_PIN, DIRECTION_PIN, STEP_DELAY, STEPS_PER_REV)
 
-        # Create Service
-        self.srv = self.create_service(AddTwoInts, 'move_motor', self.move_motor_callback)
-        #self.srv = self.create_service(AddTwoInts, 'level_motor', self.move_motor_callback) #TODO Level Motor Service
+        # Create Action Server
+        self._move_service = ActionServer(self, StepperMotor, 'move_motor', self.move_motor_callback)
+        #self._level_service = self.create_service(StepperMotor, 'level_motor', self.level_motor_callback) #TODO Level Motor Service
         # TODO - Shift Away from AddTwoInts and impliment my own custom message type
         # TODO - Change 2nd parameter to Delay
 
@@ -54,15 +57,17 @@ class StepperService(Node):
     # Request - Relative Target Rotation Angle (in Degrees)
     #           Speed in Rotations (per Second)
     # Response - relative resulting rotation angle in degrees
-    def move_motor_callback(self, request, response):
+    def move_motor_callback(self, goal_handle):
         # Log
         self.get_logger().info('Step Pin: ' + str(STEP_PIN) + ' Direction Pin: ' + str(DIRECTION_PIN) + ' Default Delay: ' + str(STEP_DELAY))
 
-        # Extract Data from the ROS SRV Message/Interface
-        # TODO - Change to custom message instead of ROS2 Example SRV Message
-        angle = request.a #Angle in degrees (relative, not target angle)
-        speed = request.b #Speed (or delay?) to move the motor at
+        # Extract Data from the ROS Action Message/Interface
+        angle = goal_handle.request.target_angle #Angle in degrees (relative, not target angle)
+        speed = goal_handle.request.speed #Speed (or delay?) to move the motor at
         delay = STEP_DELAY #Delay between steps (initialise variable at default rate)
+        response = StepperMotor.Result()
+
+        #TODO Publish Feedback
 
         # If Speed or Delay passed in correctly
         if speed != 0:
@@ -72,14 +77,14 @@ class StepperService(Node):
         else:
             # Use Default Speed
             delay = STEP_DELAY
-            self.get_logger().error('No Speed Set - using default value set upon initialisation: ' + str(delay))
+            self.get_logger().warning('No Speed Set - using default value set upon initialisation: ' + str(delay))
 
         # If angle passed in correctly
         if angle != 0:
             # Calculate No. of Steps needed to turn (to the nearest whole step)
             stepsToTake = angle / 360 * (STEPS_PER_REV * MICROSETPPING_RES)
             stepsToTake = round(stepsToTake)
-            self.get_logger().info('Recieved request for ANGLE: ' + str(stepsToTake))
+            self.get_logger().info('Recieved request for ANGLE: ' + str(angle))
 
         else:
             #Bad target angle given
@@ -105,7 +110,8 @@ class StepperService(Node):
             #ERROR bad target angle after calculation
             self.get_logger().error('Bad Resulting Step Angle.  You may have entered a value less than the step resoloution of your motor')
             #Return Error '1' message
-            response.sum = 1
+            response.succeeded = 1
+            goal_handle.fail()
             return response
 
         # Step the Motor at desired speed
@@ -116,7 +122,8 @@ class StepperService(Node):
         #self.get_logger().info('Completed Motor Rotation: %d b: %d' % (request.a, request.b))
 
         # Return successful '0' Message
-        response.sum = 0
+        goal_handle.succeed()
+        response.succeeded = 0
         return response
 
 
@@ -124,14 +131,14 @@ class StepperService(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    stepper_service = StepperService()
+    stepper_action_server = StepperService()
 
-    rclpy.spin(stepper_service)
+    rclpy.spin(stepper_action_server)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    stepper_service.destroy_node()
+    stepper_action_server.destroy_node()
     rclpy.shutdown()
 
 

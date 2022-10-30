@@ -33,7 +33,7 @@ class StepperDriver():
 		
 		# Interperet stepsToTake as Integer
 		stepsToTake = int(stepsToTake)
-		print("Taking " + str(stepsToTake) + " steps.")
+		print(" [Stepper Motor Driver] Taking " + str(stepsToTake) + " steps...")
 
 		# Set the direction
 		GPIO.output(self.DirectionPin, direction)
@@ -48,4 +48,4 @@ class StepperDriver():
 			sleep(self.Delay)
 		
 		# Finished
-		print("Finished Stepping Motor")
+		print(" [Stepper Motor Driver] Finished Stepping Motor")
