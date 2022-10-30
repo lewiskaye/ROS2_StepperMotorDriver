@@ -53,25 +53,42 @@ class StepperService(Node):
         # TODO - Shift Away from AddTwoInts and impliment my own custom message type
         # TODO - Change 2nd parameter to Delay
 
+        # Log
+        self.get_logger().info('Step Pin: ' + str(STEP_PIN) + ' Direction Pin: ' + str(DIRECTION_PIN) + ' Default Delay: ' + str(STEP_DELAY))
+
+
+
     # Moves the Motor the requested angle (relatively, NOT absoloute)
     # Request - Relative Target Rotation Angle (in Degrees)
     #           Speed in Rotations (per Second)
     # Response - relative resulting rotation angle in degrees
     def move_motor_callback(self, goal_handle):
-        # Log
-        self.get_logger().info('Step Pin: ' + str(STEP_PIN) + ' Direction Pin: ' + str(DIRECTION_PIN) + ' Default Delay: ' + str(STEP_DELAY))
-
         # Extract Data from the ROS Action Message/Interface
         angle = goal_handle.request.target_angle #Angle in degrees (relative, not target angle)
         speed = goal_handle.request.speed #Speed (or delay?) to move the motor at
         delay = STEP_DELAY #Delay between steps (initialise variable at default rate)
         response = StepperMotor.Result()
 
+        #DEBUG
+        print("Angle: " + str(angle))
+        print("Speed: " + str(speed))
+
         #TODO Publish Feedback
+
+        # If angle passed in correctly
+        if angle != 0:
+            # Calculate No. of Steps needed to turn (to the nearest whole step)
+            stepsToTake = angle / 360 * (STEPS_PER_REV * MICROSETPPING_RES)
+            stepsToTake = round(stepsToTake)
+            self.get_logger().info('Recieved request for Angle: ' + str(angle) + " deg")
+        else:
+            #Bad target angle given
+            self.get_logger().error('Bad Input Angle')
+            return 0
 
         # If Speed or Delay passed in correctly
         if speed != 0:
-            self.get_logger().info('Recieved request for Speed: ' + str(speed))
+            self.get_logger().info('Recieved request for Speed: ' + str(speed)+ " rps (rotations per second")
             delay = (1 / speed) / (STEPS_PER_REV * MICROSETPPING_RES) # Formula = 1/RPS / stepping-resoloution
             self.get_logger().info('Calculated delay: ' + str(delay))
         else:
@@ -79,17 +96,6 @@ class StepperService(Node):
             delay = STEP_DELAY
             self.get_logger().warning('No Speed Set - using default value set upon initialisation: ' + str(delay))
 
-        # If angle passed in correctly
-        if angle != 0:
-            # Calculate No. of Steps needed to turn (to the nearest whole step)
-            stepsToTake = angle / 360 * (STEPS_PER_REV * MICROSETPPING_RES)
-            stepsToTake = round(stepsToTake)
-            self.get_logger().info('Recieved request for ANGLE: ' + str(angle))
-
-        else:
-            #Bad target angle given
-            self.get_logger().error('Bad Input Angle')
-            return 0
 
         # Default to Clockwise Rotation
         direction = CLOCKWISE
