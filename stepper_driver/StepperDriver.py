@@ -7,7 +7,7 @@ class StepperDriver():
 	__CLOCKWISE = 1
 	__ANTI_CLOCKWISE = 0
 
-	def __init__(self, stepPin, directionPin, delay=0.208, stepsPerRevolution=200):
+	def __init__(self, stepPin, directionPin, delay=0.208, stepsPerRevolution=48):
 
 		# Configure instance
 		self.CLOCKWISE = self.__CLOCKWISE
@@ -25,7 +25,11 @@ class StepperDriver():
 		GPIO.setup(self.StepPin, GPIO.OUT)
 		GPIO.setup(self.DirectionPin, GPIO.OUT)
 
-	def Step(self, stepsToTake, direction = __CLOCKWISE):
+	def Step(self, stepsToTake, direction = __CLOCKWISE, delay=0):
+		
+		# Set Delay if present
+		if delay != 0:
+			self.Delay = delay
 		
 		# Interperet stepsToTake as Integer
 		stepsToTake = int(stepsToTake)
@@ -36,9 +40,12 @@ class StepperDriver():
 
 		# Take requested number of steps
 		for x in range(stepsToTake):
-			print("Step " + str(x))
+			#print("Step " + str(x)) #DEBUG
 			GPIO.output(self.StepPin, GPIO.HIGH)
 			self.CurrentStep += 1
 			sleep(self.Delay)
 			GPIO.output(self.StepPin, GPIO.LOW)
 			sleep(self.Delay)
+		
+		# Finished
+		print("Finished Stepping Motor")

@@ -1,4 +1,5 @@
 # Declare Constants Here
+#TODO - import this into other files
 
 # Define pins - Default GPIO16 for Step, GPIO21 for Direction
 STEP_PIN = 16
@@ -14,3 +15,6 @@ MICROSETPPING_RES = 8
 # Default Rotation Directions
 CLOCKWISE = 1
 ANTI_CLOCKWISE = 0
+
+# Topic to subscribe to IMU Data on (used for angle targeting, self levelling etc.)
+IMU_TOPIC = "imu/imu"
