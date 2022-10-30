@@ -46,7 +46,7 @@ class StepperService(Node):
 
         # Create Service
         self.srv = self.create_service(AddTwoInts, 'move_motor', self.move_motor_callback)
-        self.srv = self.create_service(AddTwoInts, 'level_motor', self.move_motor_callback)
+        #self.srv = self.create_service(AddTwoInts, 'level_motor', self.move_motor_callback) #TODO Level Motor Service
         # TODO - Shift Away from AddTwoInts and impliment my own custom message type
         # TODO - Change 2nd parameter to Delay
 
