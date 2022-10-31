@@ -25,7 +25,7 @@ class StepperDriver():
 		GPIO.setup(self.StepPin, GPIO.OUT)
 		GPIO.setup(self.DirectionPin, GPIO.OUT)
 
-	def Step(self, stepsToTake, direction = __CLOCKWISE, delay=0):
+	def Step(self, stepsToTake, direction = __CLOCKWISE, delay=0.1):
 		
 		# Set Delay if present
 		if delay != 0:
