@@ -32,7 +32,7 @@ STEP_DELAY = 0.005
 # Can be calculated as (360 deg / Step deg)
 STEPS_PER_REV = 48
 # The Microstepping Resoloution (default 1 if not set) (e.g. for 1/8th Resoloution, set to 8)
-MICROSETPPING_RES = 16
+MICROSETPPING_RES = 8
 
 # Topic to subscribe to IMU Data on (used for angle targeting, self levelling etc.)
 IMU_TOPIC = 'imu/imu'
@@ -96,6 +96,7 @@ class StepperService(Node):
 
         # Log
         self.get_logger().info('Step Pin: ' + str(STEP_PIN) + ' Direction Pin: ' + str(DIRECTION_PIN) + ' Default Delay: ' + str(STEP_DELAY))
+        self.get_logger().info('Steps Per Rev: ' + str(STEPS_PER_REV) + ' Microstepping Res: ' + str(MICROSETPPING_RES))
 
 
     # When IMU Data is recieved - log it
@@ -118,13 +119,13 @@ class StepperService(Node):
         if (-tolerance <= pitch <= tolerance):
             print("Motor is within tolerance of being level.  Marking as SUCCEEDED")
             self.levelling = false
-            #self.level_goal_handle.succeed() #issue with this
+            #self.level_goal_handle.suceed() #issue with this
 
-        elif (pitch < 0):
+        elif (pitch > 0):
             print("+ve | moving clockwise")
             self.stepperDriver.Step(1, CLOCKWISE, 0.01)
 
-        elif (pitch > 0):
+        elif (pitch < 0):
             print("-ve | moving anti-clockwise")
             self.stepperDriver.Step(1, ANTI_CLOCKWISE, 0.01)
 
@@ -154,6 +155,14 @@ class StepperService(Node):
         # return response
 
 
+    # def oscilate(self):
+    #     #level
+    #     while true:
+    #         stepsToTake = 180 / 360 * (STEPS_PER_REV * MICROSETPPING_RES) //
+    #         stepsToTake = round(stepsToTake)
+    #         self.stepperDriver.Step(stepsToTake, direction, delay)
+
+
     # Moves the Motor the requested angle (relatively, NOT absoloute)
     # Request - Relative Target Rotation Angle (in Degrees)
     #           Speed in Rotations (per Second)
@@ -166,8 +175,8 @@ class StepperService(Node):
         response = StepperMotor.Result()
 
         #DEBUG
-        print("Angle: " + str(angle))
-        print("Speed: " + str(speed))
+        # print("Angle: " + str(angle))
+        # print("Speed: " + str(speed))
 
         #TODO Publish Feedback
 
@@ -203,11 +212,11 @@ class StepperService(Node):
         # Handle Negative (reverse) values
         if stepsToTake > 0:
             direction = CLOCKWISE
-            self.get_logger().info('Stepping Clockwise: ' + str(stepsToTake) + ' micro-steps (' + str(stepsToTake / MICROSETPPING_RES) + ' full-steps), approx ' + str(equivDeg) + ' deg')
+            self.get_logger().info('Stepping Clockwise (' + str(direction) + '): ' + str(stepsToTake) + ' micro-steps (' + str(stepsToTake / MICROSETPPING_RES) + ' full-steps), approx ' + str(equivDeg) + ' deg')
         elif stepsToTake < 0:
             direction = ANTI_CLOCKWISE
             stepsToTake = abs(stepsToTake)  # Make Positive Number of Steps
-            self.get_logger().info('Stepping Anti-Clockwise: ' + str(stepsToTake) + ' micro-steps (' + str(stepsToTake / MICROSETPPING_RES) + ' full-steps), approx ' + str(equivDeg) + ' deg')
+            self.get_logger().info('Stepping Anti-Clockwise (' + str(direction) + '): ' + str(stepsToTake) + ' micro-steps (' + str(stepsToTake / MICROSETPPING_RES) + ' full-steps), approx ' + str(equivDeg) + ' deg')
         else:
             #ERROR bad target angle after calculation
             self.get_logger().error('Bad Resulting Step Angle.  You may have entered a value less than the step resoloution of your motor')
